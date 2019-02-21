@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<!-- -->
+<launch>
+
+    <rosparam command="load" file="$(find player_ttavares)/param/params.yaml"/>
+
+    <node name="ttavares" pkg="player_ttavares" type="player_ttavares_node" respawn="true" output="screen"/>
+
+
+</launch>
