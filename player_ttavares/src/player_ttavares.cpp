@@ -218,17 +218,6 @@ public:
         angle_to_preys.push_back(std::get<1>(t));
     }
 
-
-    //for each hunter find the closest, and run away
-    for(size_t i =0; i< team_hunters->player_names.size(); i++)
-    {
-        ROS_WARN_STREAM("team_hunters =" << team_hunters->player_names[i] << endl);
-
-        std::tuple<float, float> t= getDistanceAndAngleToPlayer(team_preys->player_names[i]);
-        distance_to_hunters.push_back( std::get<0>(t));
-        angle_to_hunters.push_back(std::get<1>(t));
-    }
-
     int idx_closest_prey=0;
     float distance_closest_prey = 1000;
 
@@ -241,17 +230,53 @@ public:
         }
     }
 
+    //for each hunter find the closest, and run away
+    for(size_t i =0; i< team_hunters->player_names.size(); i++)
+    {
+        ROS_WARN_STREAM("team_hunters =" << team_hunters->player_names[i] << endl);
 
+        std::tuple<float, float> t= getDistanceAndAngleToPlayer(team_preys->player_names[i]);
+        distance_to_hunters.push_back( std::get<0>(t));
+        angle_to_hunters.push_back(std::get<1>(t));
+    }
+
+    int idx_closest_hunter=0;
+    float distance_closest_hunter = 1000;
+
+    for (size_t i=0; i<distance_to_hunters.size(); i++)
+    {
+        if (distance_to_preys[i]<distance_closest_hunter)
+        {
+            idx_closest_hunter=i;
+            distance_closest_hunter=distance_to_hunters[i];
+        }
+    }
+
+    //check world
+    float distance_world = 1000;
+    //distance_world=
+    float max_distance_world = 7;
 
     float dx = 10;
 
-    float a = angle_to_preys[idx_closest_prey];
+    float a = M_PI/30;
+
+    if(distance_closest_hunter<=1)
+    {
+        a = angle_to_hunters[idx_closest_hunter];
+    }
+    else
+    {
+        a = angle_to_preys[idx_closest_prey];
+    }
+
     // STEP2.5: check values
     float dx_max = msg->turtle;
     dx > dx_max ? dx = dx_max : dx = dx;
 
     double amax = M_PI / 30;
     fabs(a) > fabs(amax) ? a = amax * a / fabs(a) : a = a;
+
 
     // STEP 3: define local movement
     tf::Transform T1;
