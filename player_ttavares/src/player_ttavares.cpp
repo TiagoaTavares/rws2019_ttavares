@@ -126,7 +126,6 @@ public:
     } else {
       cout << "something wrong in team parametrization" << endl;
     }
-
     setTeamName(team_mine->team_name);
 
     printInfo();
