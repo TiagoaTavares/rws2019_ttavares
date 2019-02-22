@@ -176,14 +176,22 @@ public:
 
     //STEP 2: difine how i want to move
     float dx= 0.5;
-    float angle=M_PI/6;
+    float a=M_PI/31;
+
+    //STEP2.5: check values
+    float dx_max= msg->turtle;
+    dx > dx_max ? dx = dx_max : dx=dx ;
+    
+    double amax = M_PI/30;
+    fabs(a) > fabs(amax) ? a=amax * a / fabs(a): a = a;
+
 
 
     //STEP 3: define local movement
     tf::Transform T1;
     T1.setOrigin(tf::Vector3(dx, 0, 0.0));
     tf::Quaternion q;
-    q.setRPY(0, 0, angle);
+    q.setRPY(0, 0, a);
     T1.setRotation(q);
 
     //STEP 4: define global movement
