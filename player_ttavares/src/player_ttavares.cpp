@@ -4,10 +4,18 @@
 
 #include <rws2019_msgs/MakeAPlay.h>
 #include <tf/transform_broadcaster.h>
+#include <tf/transform_listener.h>
 
 using namespace std;
 using namespace ros;
 using namespace boost;
+
+
+float randomizePosition()
+{
+  srand(4232*time(NULL)); // set initial seed value to 5323
+  return (((double)rand() / (RAND_MAX)) - 0.5) * 10;
+}
 
 namespace ttavares_ns // criamos o nosso namespace para nao aver conflitos
 {
@@ -34,8 +42,10 @@ public:
     }
   }
 
-  bool playerBelongsToTeam(string player_name) {
-    for (size_t i = 0; i < player_names.size(); i++) {
+  bool playerBelongsToTeam(string player_name) 
+  {
+    for (size_t i = 0; i < player_names.size(); i++) 
+    {
       if (player_name == player_names[i]) {
         return true;
       }
@@ -57,8 +67,7 @@ public: // methods
   }
 
   void setTeamName(string team_name_in) {
-    if (team_name_in == "red" || team_name_in == "green" ||
-        team_name_in == "blue") {
+    if (team_name_in == "red" || team_name_in == "green" || team_name_in == "blue") {
       team_name = team_name_in;
     } else {
       cout << "Hello Cannote set team name" << team_name_in << endl;
@@ -89,8 +98,7 @@ class MyPlayer
     : public Player // declaro a classe e herdo as propriedades da classe Player
 {
 public:
-  boost::shared_ptr<Team>
-      team_red; // nomenclatura para um ponteiro shares_pointer declaração
+  boost::shared_ptr<Team> team_red; // nomenclatura para um ponteiro shares_pointer declaração
   boost::shared_ptr<Team> team_green;
   boost::shared_ptr<Team> team_blue;
 
@@ -100,12 +108,11 @@ public:
 
   // para as tf's
   tf::TransformBroadcaster br;
-  tf::Transform transform;
+  tf::TransformListener listener;
+  //tf::Transform transform;
 
-  MyPlayer(string player_name_in, string team_name_in)
-      : Player(player_name_in) {
-    team_red = (boost::shared_ptr<Team>)new Team(
-        "red"); // do genero de um malloc, ou seja team_red aponta para um campo
+  MyPlayer(string player_name_in, string team_name_in) : Player(player_name_in) {
+    team_red = (boost::shared_ptr<Team>)new Team("red"); // do genero de um malloc, ou seja team_red aponta para um campo
                 // q ja existe
     team_green = (boost::shared_ptr<Team>)new Team("green");
     team_blue = (boost::shared_ptr<Team>)new Team("blue");
@@ -128,6 +135,19 @@ public:
     }
     setTeamName(team_mine->team_name);
 
+    //DEFINE INTIAL POSTION:
+    tf::Transform T1;
+    T1.setOrigin(tf::Vector3(randomizePosition(), randomizePosition(), 0.0));
+    tf::Quaternion q;
+    q.setRPY(0, 0, M_PI);
+    T1.setRotation(q);
+
+
+    br.sendTransform(tf::StampedTransform(T1, ros::Time::now(), "world", player_name));
+
+
+
+
     printInfo();
   }
 
@@ -141,12 +161,36 @@ public:
 
     // so podemos aplicar transformações quando jogamos
     // TF
-    tf::Transform transform1;
-    transform.setOrigin(tf::Vector3(3, 3, 0.0));
+
+    //STEP 1: Find out where i am
+    tf::StampedTransform T0;
+    try
+    {
+      listener.lookupTransform("/world", player_name, ros::Time(0), T0);
+    }
+    catch (tf::TransformException ex)
+    {
+      ROS_ERROR("%s",ex.what());
+      ros::Duration(0.1).sleep();
+    }
+
+    //STEP 2: difine how i want to move
+    float dx= 0.5;
+    float angle=M_PI/6;
+
+
+    //STEP 3: define local movement
+    tf::Transform T1;
+    T1.setOrigin(tf::Vector3(dx, 0, 0.0));
     tf::Quaternion q;
-    q.setRPY(0, 0, 0);
-    transform.setRotation(q);
-    br.sendTransform(tf::StampedTransform(transform, ros::Time::now(), "world", player_name));
+    q.setRPY(0, 0, angle);
+    T1.setRotation(q);
+
+    //STEP 4: define global movement
+    tf::Transform Tglobal = T0 * T1 ;
+
+
+    br.sendTransform(tf::StampedTransform(Tglobal, ros::Time::now(), "world", player_name));
   }
 
 private:
@@ -171,17 +215,16 @@ main(int argc, char **argv) {
   // team_green.player_names.push_back("moliveira");
   // team_green.player_names.push_back("blourenco");
 
-  ros::Subscriber sub = n.subscribe(
-      "/make_a_play", 100, &ttavares_ns::MyPlayer::makeAPlayCallback, &player);
+  ros::Subscriber sub = n.subscribe("/make_a_play", 100, &ttavares_ns::MyPlayer::makeAPlayCallback, &player);
 
+    player.printInfo();
+    ros::Rate r(20);
   while (ok()) {
     // team_green.printInfo();
     // bool check_team = team_green.playerBelongsToTeam("moliveira");
     // cout << "o resultado do check é=" << check_team << endl;
-    player.printInfo();
-    Duration(1).sleep();
-
     ros::spinOnce();
+    r.sleep();
   }
 
   return 1;
