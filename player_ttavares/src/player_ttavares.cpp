@@ -251,6 +251,7 @@ public:
             distance_closest_hunter=distance_to_hunters[i];
         }
     }
+
     //get world
 
     // std::tuple<float, float> t= getDistanceAndAngleToWorld();
@@ -267,7 +268,7 @@ public:
     float dx = 10;
     float a = M_PI/30;
 
-    if(distance_closest_hunter<=100)
+    if(distance_closest_hunter<=1)
     {
         a = - angle_to_hunters[idx_closest_hunter];
     }
