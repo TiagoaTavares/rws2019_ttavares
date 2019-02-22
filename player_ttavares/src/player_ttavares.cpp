@@ -159,9 +159,9 @@ public:
                                   << team_mine->team_name << endl);
   }
 
-    std::tuple<float, float> getDistanceAndAngleToWorld(string other_player) 
+    std::tuple<float, float> getDistanceAndAngleToWorld() 
   {
-      getDistanceAndAngleToPlayer("world") ;
+      return getDistanceAndAngleToPlayer("world") ;
 
   }
   
@@ -251,19 +251,29 @@ public:
             distance_closest_hunter=distance_to_hunters[i];
         }
     }
+    //get world
 
-    //check world
-    float distance_world = 1000;
-    //distance_world=
-    float max_distance_world = 7;
+    std::tuple<float, float> t= getDistanceAndAngleToWorld();
+    distance_to_world.push_back( std::get<0>(t));
+    angle_to_world.push_back(std::get<1>(t));
 
+    float distance_world=distance_to_world[0];
+    float angle_world=distance_to_world[0];
+
+
+
+    //check
+    float max_distance_world = 5;
     float dx = 10;
-
     float a = M_PI/30;
 
     if(distance_closest_hunter<=1)
     {
-        a = angle_to_hunters[idx_closest_hunter];
+        a = -angle_to_hunters[idx_closest_hunter];
+    }
+    else if ( distance_world <= max_distance_world )
+    {
+        a=-angle_world;
     }
     else
     {
