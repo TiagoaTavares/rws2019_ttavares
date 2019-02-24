@@ -272,6 +272,7 @@ public:
     float dx = 10;
     float a = M_PI / 30;
 
+
     if (distance_closest_hunter <= 1) {
       a = M_PI + angle_to_hunters[idx_closest_hunter];
       marker.text = "running away from my hunter " + team_hunters->player_names[idx_closest_hunter];
