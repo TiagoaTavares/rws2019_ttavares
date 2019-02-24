@@ -7,6 +7,8 @@
 #include <tf/transform_listener.h>
 #include <visualization_msgs/Marker.h>
 
+#include <algorithm>    // std::sort
+
 using namespace std;
 using namespace ros;
 using namespace boost;
@@ -17,6 +19,10 @@ float randomizePosition() {
 }
 
 namespace ttavares_ns { // criamos o nosso namespace para nao haver conflitos
+
+struct mysort {
+  bool operator() (int i,int j) { return (i<j);}
+} myobject;
 
 class Team // class Team
 {
@@ -200,12 +206,11 @@ public:
 
     // STEP 2: difine how i want to move
     vector<float> distance_to_preys;
+    vector<float> distance_sort_preys;
     vector<float> angle_to_preys;
 
-    vector<float> distance_to_world;
-    vector<float> angle_to_world;
-
     vector<float> distance_to_hunters;
+    vector<float> distance_sort_hunters;
     vector<float> angle_to_hunters;
 
     // For each prey find the closest. Tenh follow her:
@@ -249,32 +254,42 @@ public:
       }
     }
 
+    //sort vectores
+    distance_sort_hunters=distance_to_hunters;
+    distance_sort_preys=distance_to_preys;
+
+    std::sort (distance_sort_hunters.begin(), distance_sort_hunters.end(), myobject);
+    std::sort (distance_sort_preys.begin(), distance_sort_preys.end(), myobject);
+
+
     // get world
+    float distance_to_world = std::get<0>(getDistanceAndAngleToWorld());
+    float angle_to_world = std::get<1>(getDistanceAndAngleToWorld());
 
-    // std::tuple<float, float> t= getDistanceAndAngleToWorld();
-    // distance_to_world.push_back( std::get<0>(t));
-    // angle_to_world.push_back(std::get<1>(t));
-
-    // float distance_world=distance_to_world[0];
-    // float angle_world=distance_to_world[0];
 
     // check
-    float max_distance_world = 5;
+    float max_distance_world = 7;
     float dx = 10;
     float a = M_PI / 30;
 
     if (distance_closest_hunter <= 1) {
-      a = -angle_to_hunters[idx_closest_hunter];
-      marker.text = "running away from my hunter";
+      a = M_PI + angle_to_hunters[idx_closest_hunter];
+      marker.text = "running away from my hunter " + team_hunters->player_names[idx_closest_hunter];
     }
-    // else if ( distance_world >= max_distance_world )
-    // {
-    //     a=-angle_world;
-    // }
     else {
       a = angle_to_preys[idx_closest_prey];
-      marker.text = "i will catch you";
+      marker.text = "i will catch you " + team_preys->player_names[idx_closest_prey];
+    }
+    if ( distance_to_world >= max_distance_world )
+    {
+        a=angle_to_world + M_PI/2;
+        marker.text = "oh no! arena limits" ;
 
+        if (distance_closest_hunter >= 2)
+        {
+            a = angle_to_preys[idx_closest_prey];
+            marker.text = "i will catch you " + team_preys->player_names[idx_closest_prey];
+        }
     }
 
     // STEP2.5: check values
@@ -291,7 +306,7 @@ public:
     q.setRPY(0, 0, a);
     T1.setRotation(q);
 
-    
+
     // STEP 4: define global movement
     tf::Transform Tglobal = T0 * T1;
     br.sendTransform(
@@ -304,10 +319,11 @@ public:
     marker.id = 0;
     marker.type = visualization_msgs::Marker::TEXT_VIEW_FACING;
     marker.action = visualization_msgs::Marker::ADD;
+    marker.pose.position.y = 0.5;
     marker.scale.z = 0.4;
     marker.color.a = 1.0; // Don't forget to set the alpha!
     marker.color.r = 0.0;
-    marker.color.g = 1.0;
+    marker.color.g = 0.0;
     marker.color.b = 0.0;
     // only if using a MESH_RESOURCE marker type:
     // marker.mesh_resource =
