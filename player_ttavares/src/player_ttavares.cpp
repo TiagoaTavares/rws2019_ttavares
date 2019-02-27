@@ -1,5 +1,5 @@
-#include <iostream>
 #include <ros/ros.h>
+#include <iostream>
 #include <vector>
 
 #include <rws2019_msgs/MakeAPlay.h>
@@ -7,48 +7,60 @@
 #include <tf/transform_listener.h>
 #include <visualization_msgs/Marker.h>
 
-#include <algorithm>    // std::sort
+#include <algorithm>  // std::sort
 
 using namespace std;
 using namespace ros;
 using namespace boost;
 
-float randomizePosition() {
-  srand(4232 * time(NULL)); // set initial seed value to 5323
+float randomizePosition()
+{
+  srand(4232 * time(NULL));  // set initial seed value to 5323
   return (((double)rand() / (RAND_MAX)) - 0.5) * 10;
 }
 
-namespace ttavares_ns { // criamos o nosso namespace para nao haver conflitos
+namespace ttavares_ns
+{  // criamos o nosso namespace para nao haver conflitos
 
-struct mysort {
-  bool operator() (int i,int j) { return (i<j);}
+struct mysort
+{
+  bool operator()(int i, int j)
+  {
+    return (i < j);
+  }
 } myobject;
 
-class Team // class Team
+class Team  // class Team
 {
 public:
   string team_name;
-  vector<string> player_names; // ciar um vetor de strings chamado player_names
+  vector<string> player_names;  // ciar um vetor de strings chamado player_names
 
-  NodeHandle n; // criate a node
+  NodeHandle n;  // criate a node
 
-  Team(string team_name_in) {
+  Team(string team_name_in)
+  {
     team_name = team_name_in;
     n.getParam("/team_" + team_name, player_names);
   }
 
-  void printInfo() {
+  void printInfo()
+  {
     cout << "Team " << team_name << " has players: " << endl;
 
-    for (size_t i = 0; i < player_names.size(); i++) {
+    for (size_t i = 0; i < player_names.size(); i++)
+    {
       cout << player_names[i] << endl;
     }
   }
 
   // funct returns True or False dependendo the player_name
-  bool playerBelongsToTeam(string player_name) {
-    for (size_t i = 0; i < player_names.size(); i++) {
-      if (player_name == player_names[i]) {
+  bool playerBelongsToTeam(string player_name)
+  {
+    for (size_t i = 0; i < player_names.size(); i++)
+    {
+      if (player_name == player_names[i])
+      {
         return true;
       }
     }
@@ -59,25 +71,29 @@ private:
 };
 
 // class PLAYER
-class Player {
-public: // methods
+class Player
+{
+public:  // methods
   string player_name;
 
-  Player(string player_name_in) // construtor
+  Player(string player_name_in)  // construtor
   {
     player_name = player_name_in;
   }
 
-  void setTeamName(string team_name_in) {
-    if (team_name_in == "red" || team_name_in == "green" ||
-        team_name_in == "blue") {
+  void setTeamName(string team_name_in)
+  {
+    if (team_name_in == "red" || team_name_in == "green" || team_name_in == "blue")
+    {
       team_name = team_name_in;
-    } else {
+    }
+    else
+    {
       cout << "Can not set team name: " << team_name_in << endl;
     }
   }
-  void setTeamName(int team_index) // damos o overload do setTeamName, ele
-                                   // escolhe qual usa consoante o argumento
+  void setTeamName(int team_index)  // damos o overload do setTeamName, ele
+                                    // escolhe qual usa consoante o argumento
   {
     if (team_index == 0)
       setTeamName("red");
@@ -91,17 +107,20 @@ public: // methods
       setTeamName("");
   }
 
-  string getTeamName() { return team_name; };
+  string getTeamName()
+  {
+    return team_name;
+  };
 
 private:
   string team_name;
 };
 
-class MyPlayer : public Player { // declaro a classe e herdo as propriedades da
-                                 // classe Player
+class MyPlayer : public Player
+{  // declaro a classe e herdo as propriedades da
+   // classe Player
 public:
-  boost::shared_ptr<Team>
-      team_red; // nomenclatura para um ponteiro shares_pointer declaração
+  boost::shared_ptr<Team> team_red;  // nomenclatura para um ponteiro shares_pointer declaração
   boost::shared_ptr<Team> team_green;
   boost::shared_ptr<Team> team_blue;
 
@@ -115,10 +134,14 @@ public:
 
   boost::shared_ptr<ros::Publisher> vis_pub;
 
-  MyPlayer(string player_name_in, string team_name_in) : Player(player_name_in) { //contrutor
+  string last_prey;
+  string last_hunter;
 
-    team_red = (boost::shared_ptr<Team>)new Team("red"); // do genero de um malloc, ou seja team_red aponta para um campo
-                                                        // q ja existe
+  MyPlayer(string player_name_in, string team_name_in) : Player(player_name_in)
+  {  // contrutor
+
+    team_red = (boost::shared_ptr<Team>)new Team("red");  // do genero de um malloc, ou seja team_red aponta para um
+                                                          // campo q ja existe
     team_green = (boost::shared_ptr<Team>)new Team("green");
     team_blue = (boost::shared_ptr<Team>)new Team("blue");
 
@@ -126,24 +149,31 @@ public:
     vis_pub = (boost::shared_ptr<ros::Publisher>)new ros::Publisher;
     (*vis_pub) = n.advertise<visualization_msgs::Marker>("/bocas", 0);
 
-    if (team_red->playerBelongsToTeam(player_name)) // se o
+    if (team_red->playerBelongsToTeam(player_name))  // se o
     {
       team_mine = team_red;
       team_preys = team_green;
       team_hunters = team_blue;
-    } else if (team_green->playerBelongsToTeam(player_name)) {
+    }
+    else if (team_green->playerBelongsToTeam(player_name))
+    {
       team_mine = team_green;
       team_preys = team_blue;
       team_hunters = team_red;
-    } else if (team_blue->playerBelongsToTeam(player_name)) {
+    }
+    else if (team_blue->playerBelongsToTeam(player_name))
+    {
       team_mine = team_blue;
       team_preys = team_red;
       team_hunters = team_green;
-    } else {
+    }
+    else
+    {
       cout << "something wrong in team parametrization" << endl;
     }
-    
-    setTeamName(team_mine->team_name); //team_mine é um ponteiro = team_green p.ex... Na classe Team existe um campo team_name
+
+    setTeamName(team_mine->team_name);  // team_mine é um ponteiro = team_green p.ex... Na classe Team existe um campo
+                                        // team_name
 
     // DEFINE INTIAL POSTION:
     tf::Transform T1;
@@ -152,54 +182,64 @@ public:
     q.setRPY(0, 0, M_PI);
     T1.setRotation(q);
 
-    br.sendTransform(
-        tf::StampedTransform(T1, ros::Time::now(), "world", player_name));
+    br.sendTransform(tf::StampedTransform(T1, ros::Time::now(), "world", player_name));
     ros::Duration(0.1).sleep();
-    br.sendTransform(
-        tf::StampedTransform(T1, ros::Time::now(), "world", player_name));
+    br.sendTransform(tf::StampedTransform(T1, ros::Time::now(), "world", player_name));
 
     printInfo();
+
+    last_prey = "";
+    last_hunter = "";
   }
 
-  void printInfo() {
-    ROS_INFO_STREAM("My name is " << player_name << " and my team is "
-                                  << team_mine->team_name << endl);
+  void printInfo()
+  {
+    ROS_INFO_STREAM("My name is " << player_name << " and my team is " << team_mine->team_name << endl);
   }
 
-  std::tuple<float, float> getDistanceAndAngleToWorld() {
+  std::tuple<float, float> getDistanceAndAngleToWorld()
+  {
     return getDistanceAndAngleToPlayer("world");
   }
 
-  std::tuple<float, float> getDistanceAndAngleToPlayer(string other_player) {
+  std::tuple<float, float> getDistanceAndAngleToPlayer(string other_player)
+  {
     tf::StampedTransform T0;
-    try {
+    try
+    {
       listener.lookupTransform(player_name, other_player, ros::Time(0), T0);
-    } catch (tf::TransformException ex) {
+    }
+    catch (tf::TransformException ex)
+    {
       ROS_ERROR("%s", ex.what());
       ros::Duration(0.1).sleep();
-      return {1000, 1000};
+      return { 1000, 1000 };
     }
 
-    float d = sqrt(T0.getOrigin().x() * T0.getOrigin().x() +
-                   T0.getOrigin().y() * T0.getOrigin().y());
+    float d = sqrt(T0.getOrigin().x() * T0.getOrigin().x() + T0.getOrigin().y() * T0.getOrigin().y());
     float a = atan2(T0.getOrigin().y(), T0.getOrigin().x());
 
-    return {d, a};
+    return { d, a };
   }
 
-  void makeAPlayCallback(rws2019_msgs::MakeAPlayConstPtr msg) {
+  void makeAPlayCallback(rws2019_msgs::MakeAPlayConstPtr msg)
+  {
     ROS_INFO("received a new msg");
 
     visualization_msgs::Marker marker;
 
     // so podemos aplicar transformações quando jogamos
     // TF
+    bool something_changed = false;
 
     // STEP 1: Find out where i am
     tf::StampedTransform T0;
-    try {
+    try
+    {
       listener.lookupTransform("world", player_name, ros::Time(0), T0);
-    } catch (tf::TransformException ex) {
+    }
+    catch (tf::TransformException ex)
+    {
       ROS_ERROR("%s", ex.what());
       ros::Duration(0.1).sleep();
     }
@@ -214,83 +254,109 @@ public:
     vector<float> angle_to_hunters;
 
     // For each prey find the closest. Tenh follow her:
-    for (size_t i = 0; i < team_preys->player_names.size(); i++) {
+    for (size_t i = 0; i < team_preys->player_names.size(); i++)
+    {
       ROS_WARN_STREAM("team_preys =" << team_preys->player_names[i] << endl);
 
-      std::tuple<float, float> t =
-          getDistanceAndAngleToPlayer(team_preys->player_names[i]);
+      std::tuple<float, float> t = getDistanceAndAngleToPlayer(team_preys->player_names[i]);
       distance_to_preys.push_back(std::get<0>(t));
       angle_to_preys.push_back(std::get<1>(t));
     }
 
-    int idx_closest_prey = 0;
+    int idx_closest_prey = -1;
     float distance_closest_prey = 1000;
 
-    for (size_t i = 0; i < distance_to_preys.size(); i++) {
-      if (distance_to_preys[i] < distance_closest_prey) {
+    for (size_t i = 0; i < distance_to_preys.size(); i++)
+    {
+      if (distance_to_preys[i] < distance_closest_prey)
+      {
         idx_closest_prey = i;
         distance_closest_prey = distance_to_preys[i];
       }
     }
 
     // for each hunter find the closest, and run away
-    for (size_t i = 0; i < team_hunters->player_names.size(); i++) {
-      ROS_WARN_STREAM("team_hunters =" << team_hunters->player_names[i]
-                                       << endl);
+    for (size_t i = 0; i < team_hunters->player_names.size(); i++)
+    {
+      ROS_WARN_STREAM("team_hunters =" << team_hunters->player_names[i] << endl);
 
-      std::tuple<float, float> t =
-          getDistanceAndAngleToPlayer(team_hunters->player_names[i]);
+      std::tuple<float, float> t = getDistanceAndAngleToPlayer(team_hunters->player_names[i]);
       distance_to_hunters.push_back(std::get<0>(t));
       angle_to_hunters.push_back(std::get<1>(t));
     }
 
-    int idx_closest_hunter = 0;
+    int idx_closest_hunter = -1;
     float distance_closest_hunter = 1000;
 
-    for (size_t i = 0; i < distance_to_hunters.size(); i++) {
-      if (distance_to_hunters[i] < distance_closest_hunter) {
+    for (size_t i = 0; i < distance_to_hunters.size(); i++)
+    {
+      if (distance_to_hunters[i] < distance_closest_hunter)
+      {
         idx_closest_hunter = i;
         distance_closest_hunter = distance_to_hunters[i];
       }
     }
 
-    //sort vectores
-    distance_sort_hunters=distance_to_hunters;
-    distance_sort_preys=distance_to_preys;
+    // sort vectores
+    distance_sort_hunters = distance_to_hunters;
+    distance_sort_preys = distance_to_preys;
 
-    std::sort (distance_sort_hunters.begin(), distance_sort_hunters.end(), myobject);
-    std::sort (distance_sort_preys.begin(), distance_sort_preys.end(), myobject);
-
+    std::sort(distance_sort_hunters.begin(), distance_sort_hunters.end(), myobject);
+    std::sort(distance_sort_preys.begin(), distance_sort_preys.end(), myobject);
 
     // get world
     float distance_to_world = std::get<0>(getDistanceAndAngleToWorld());
     float angle_to_world = std::get<1>(getDistanceAndAngleToWorld());
 
 
+    // Check if last_prey is different from prey
+    string prey = "";
+    if (idx_closest_prey != -1)
+    {
+      prey = msg->blue_alive[idx_closest_prey];
+      if (prey != last_prey)
+      {
+        something_changed = true;
+        last_prey = prey;
+      }
+    }
+
+    string hunter = "";
+    if (idx_closest_prey != -1)
+    {
+      hunter = msg->red_alive[idx_closest_hunter];
+      if (hunter != last_hunter)
+      {
+        something_changed = true;
+        last_hunter = hunter;
+      }
+    }
+
     // check
     float max_distance_world = 7;
     float dx = 10;
     float a = M_PI / 30;
 
-
-    if (distance_closest_hunter <= 1) {
+    if (distance_closest_hunter <= 1)
+    {
       a = M_PI + angle_to_hunters[idx_closest_hunter];
       marker.text = "running away from my hunter " + team_hunters->player_names[idx_closest_hunter];
     }
-    else {
+    else
+    {
       a = angle_to_preys[idx_closest_prey];
       marker.text = "i will catch you " + team_preys->player_names[idx_closest_prey];
     }
-    if ( distance_to_world >= max_distance_world )
+    if (distance_to_world >= max_distance_world)
     {
-        a=angle_to_world + M_PI/2;
-        marker.text = "oh no! arena limits" ;
+      a = angle_to_world + M_PI / 2;
+      marker.text = "oh no! arena limits";
 
-        if (distance_closest_hunter >= 2)
-        {
-            a = angle_to_preys[idx_closest_prey];
-            marker.text = "i will catch you " + team_preys->player_names[idx_closest_prey];
-        }
+      if (distance_closest_hunter >= 2)
+      {
+        a = angle_to_preys[idx_closest_prey];
+        marker.text = "i will catch you " + team_preys->player_names[idx_closest_prey];
+      }
     }
 
     // STEP2.5: check values
@@ -298,8 +364,11 @@ public:
     dx > dx_max ? dx = dx_max : dx = dx;
 
     double amax = M_PI / 30;
-    fabs(a) > fabs(amax) ? a = amax * a / fabs(a) : a = a;
 
+    if (a == 0)
+    {
+      fabs(a) > fabs(amax) ? a = amax * a / fabs(a) : a = a;
+    }
     // STEP 3: define local movement
     tf::Transform T1;
     T1.setOrigin(tf::Vector3(dx, 0, 0.0));
@@ -307,13 +376,11 @@ public:
     q.setRPY(0, 0, a);
     T1.setRotation(q);
 
-
     // STEP 4: define global movement
     tf::Transform Tglobal = T0 * T1;
-    br.sendTransform(
-        tf::StampedTransform(Tglobal, ros::Time::now(), "world", player_name));
+    br.sendTransform(tf::StampedTransform(Tglobal, ros::Time::now(), "world", player_name));
 
-    
+    if (something_changed){
     marker.header.frame_id = player_name;
     marker.header.stamp = ros::Time();
     marker.ns = player_name;
@@ -322,23 +389,26 @@ public:
     marker.action = visualization_msgs::Marker::ADD;
     marker.pose.position.y = 0.5;
     marker.scale.z = 0.4;
-    marker.color.a = 1.0; // Don't forget to set the alpha!
+    marker.color.a = 1.0;  // Don't forget to set the alpha!
     marker.color.r = 0.0;
     marker.color.g = 0.0;
     marker.color.b = 0.0;
+    marker.lifetime = ros::Duration(2);
+    marker.frame_locked= 1; //marcador para mexer ao longo  do tempo
     // only if using a MESH_RESOURCE marker type:
     // marker.mesh_resource =
     // "package://pr2_description/meshes/base_v0/base.dae";
     vis_pub->publish(marker);
+    }
   }
 
 private:
 };
 
-}; // namespace ttavares_ns
+};  // namespace ttavares_ns
 
-main(int argc, char **argv) {
-
+main(int argc, char **argv)
+{
   init(argc, argv, "PlayerTiago");
   NodeHandle n;
 
@@ -354,12 +424,12 @@ main(int argc, char **argv) {
   // team_green.player_names.push_back("moliveira");
   // team_green.player_names.push_back("blourenco");
 
-  ros::Subscriber sub = n.subscribe(
-      "/make_a_play", 100, &ttavares_ns::MyPlayer::makeAPlayCallback, &player);
-    //make_a_play is a topic
+  ros::Subscriber sub = n.subscribe("/make_a_play", 100, &ttavares_ns::MyPlayer::makeAPlayCallback, &player);
+  // make_a_play is a topic
   player.printInfo();
   ros::Rate r(20);
-  while (ok()) {
+  while (ok())
+  {
     // team_green.printInfo();
     // bool check_team = team_green.playerBelongsToTeam("moliveira");
     // cout << "o resultado do check é=" << check_team << endl;
