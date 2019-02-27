@@ -322,7 +322,7 @@ public:
     }
 
     string hunter = "";
-    if (idx_closest_prey != -1)
+    if (idx_closest_hunter != -1)
     {
       hunter = msg->red_alive[idx_closest_hunter];
       if (hunter != last_hunter)
