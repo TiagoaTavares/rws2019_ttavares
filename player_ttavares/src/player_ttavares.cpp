@@ -310,27 +310,27 @@ public:
 
 
     // Check if last_prey is different from prey
-    string prey = "";
-    if (idx_closest_prey != -1)
-    {
-      prey = msg->blue_alive[idx_closest_prey];
-      if (prey != last_prey)
-      {
-        something_changed = true;
-        last_prey = prey;
-      }
-    }
+    // string prey = "";
+    // if (idx_closest_prey != -1)
+    // {
+    //   prey = msg->blue_alive[idx_closest_prey];
+    //   if (prey != last_prey)
+    //   {
+    //     something_changed = true;
+    //     last_prey = prey;
+    //   }
+    // }
 
-    string hunter = "";
-    if (idx_closest_hunter != -1)
-    {
-      hunter = msg->red_alive[idx_closest_hunter];
-      if (hunter != last_hunter)
-      {
-        something_changed = true;
-        last_hunter = hunter;
-      }
-    }
+    // string hunter = "";
+    // if (idx_closest_hunter != -1)
+    // {
+    //   hunter = msg->red_alive[idx_closest_hunter];
+    //   if (hunter != last_hunter)
+    //   {
+    //     something_changed = true;
+    //     last_hunter = hunter;
+    //   }
+    // }
 
     // check
     float max_distance_world = 7;
@@ -380,26 +380,26 @@ public:
     tf::Transform Tglobal = T0 * T1;
     br.sendTransform(tf::StampedTransform(Tglobal, ros::Time::now(), "world", player_name));
 
-    if (something_changed){
-    marker.header.frame_id = player_name;
-    marker.header.stamp = ros::Time();
-    marker.ns = player_name;
-    marker.id = 0;
-    marker.type = visualization_msgs::Marker::TEXT_VIEW_FACING;
-    marker.action = visualization_msgs::Marker::ADD;
-    marker.pose.position.y = 0.5;
-    marker.scale.z = 0.4;
-    marker.color.a = 1.0;  // Don't forget to set the alpha!
-    marker.color.r = 0.0;
-    marker.color.g = 0.0;
-    marker.color.b = 0.0;
-    marker.lifetime = ros::Duration(2);
-    marker.frame_locked= 1; //marcador para mexer ao longo  do tempo
-    // only if using a MESH_RESOURCE marker type:
-    // marker.mesh_resource =
-    // "package://pr2_description/meshes/base_v0/base.dae";
-    vis_pub->publish(marker);
-    }
+    // if (something_changed){
+    // marker.header.frame_id = player_name;
+    // marker.header.stamp = ros::Time();
+    // marker.ns = player_name;
+    // marker.id = 0;
+    // marker.type = visualization_msgs::Marker::TEXT_VIEW_FACING;
+    // marker.action = visualization_msgs::Marker::ADD;
+    // marker.pose.position.y = 0.5;
+    // marker.scale.z = 0.4;
+    // marker.color.a = 1.0;  // Don't forget to set the alpha!
+    // marker.color.r = 0.0;
+    // marker.color.g = 0.0;
+    // marker.color.b = 0.0;
+    // marker.lifetime = ros::Duration(2);
+    // marker.frame_locked= 1; //marcador para mexer ao longo  do tempo
+    // // only if using a MESH_RESOURCE marker type:
+    // // marker.mesh_resource =
+    // // "package://pr2_description/meshes/base_v0/base.dae";
+    // vis_pub->publish(marker);
+    // }
   }
 
 private:
