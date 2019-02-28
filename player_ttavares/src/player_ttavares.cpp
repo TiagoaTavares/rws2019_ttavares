@@ -10,15 +10,15 @@
 #include <algorithm>  // std::sort
 
 // PCL specific includes
-#include <pcl/point_types.h>
-#include <pcl_ros/point_cloud.h>
-#include <boost/foreach.hpp>
+// #include <pcl/point_types.h>
+// #include <pcl_ros/point_cloud.h>
+// #include <boost/foreach.hpp>
 
 using namespace std;
 using namespace ros;
 using namespace boost;
 
-typedef pcl::PointCloud<pcl::PointXYZ> PointCloud;  // PCL
+// typedef pcl::PointCloud<pcl::PointXYZ> PointCloud;  // PCL
 
 float randomizePosition()
 {
@@ -410,12 +410,15 @@ public:
     // }
   }
 
-  void PCL_callback(const PointCloud::ConstPtr& msg)
-  {
-    printf("Cloud: width = %d, height = %d\n", msg->width, msg->height);
-    BOOST_FOREACH (const pcl::PointXYZ& pt, msg->points)
-      printf("\t(%f, %f, %f)\n", pt.x, pt.y, pt.z);
-  }
+
+  // void PCL_callback(const PointCloud::ConstPtr& msg)
+  // {
+  //   printf("Cloud: width = %d, height = %d\n", msg->width, msg->height);
+  //   BOOST_FOREACH (const pcl::PointXYZ& pt, msg->points)
+  //     printf("\t(%f, %f, %f)\n", pt.x, pt.y, pt.z);
+  // }
+
+
 private:
 };
 
@@ -441,7 +444,7 @@ main(int argc, char** argv)
   //========================================== PCL ====================================
   //ros::init(argc, argv, "sub_pcl");
   //ros::NodeHandle nh;
-  ros::Subscriber sub_pcl = n.subscribe<PointCloud>("/object_point_cloud", 1, &ttavares_ns::MyPlayer::PCL_callback, &player);
+  //ros::Subscriber sub_pcl = n.subscribe<PointCloud>("/object_point_cloud", 1, &ttavares_ns::MyPlayer::PCL_callback, &player);
 
   //========================================================================================
 
