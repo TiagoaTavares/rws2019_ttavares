@@ -233,7 +233,7 @@ public:
 
   void makeAPlayCallback(rws2019_msgs::MakeAPlayConstPtr msg)
   {
-    ROS_INFO("received a new msg");
+    //ROS_INFO("received a new msg");
 
     visualization_msgs::Marker marker;
 
@@ -265,7 +265,7 @@ public:
     // For each prey find the closest. Tenh follow her:
     for (size_t i = 0; i < team_preys->player_names.size(); i++)
     {
-      ROS_WARN_STREAM("team_preys =" << team_preys->player_names[i] << endl);
+      //ROS_WARN_STREAM("team_preys =" << team_preys->player_names[i] << endl);
 
       std::tuple<float, float> t = getDistanceAndAngleToPlayer(team_preys->player_names[i]);
       distance_to_preys.push_back(std::get<0>(t));
@@ -287,7 +287,7 @@ public:
     // for each hunter find the closest, and run away
     for (size_t i = 0; i < team_hunters->player_names.size(); i++)
     {
-      ROS_WARN_STREAM("team_hunters =" << team_hunters->player_names[i] << endl);
+      //ROS_WARN_STREAM("team_hunters =" << team_hunters->player_names[i] << endl);
 
       std::tuple<float, float> t = getDistanceAndAngleToPlayer(team_hunters->player_names[i]);
       distance_to_hunters.push_back(std::get<0>(t));
