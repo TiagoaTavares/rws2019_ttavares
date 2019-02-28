@@ -14,6 +14,9 @@
 // #include <pcl_ros/point_cloud.h>
 // #include <boost/foreach.hpp>
 
+#include <rws2019_msgs/DoTheMath.h> //para o servico
+
+
 using namespace std;
 using namespace ros;
 using namespace boost;
@@ -233,7 +236,7 @@ public:
 
   void makeAPlayCallback(rws2019_msgs::MakeAPlayConstPtr msg)
   {
-    //ROS_INFO("received a new msg");
+    // ROS_INFO("received a new msg");
 
     visualization_msgs::Marker marker;
 
@@ -265,7 +268,7 @@ public:
     // For each prey find the closest. Tenh follow her:
     for (size_t i = 0; i < team_preys->player_names.size(); i++)
     {
-      //ROS_WARN_STREAM("team_preys =" << team_preys->player_names[i] << endl);
+      // ROS_WARN_STREAM("team_preys =" << team_preys->player_names[i] << endl);
 
       std::tuple<float, float> t = getDistanceAndAngleToPlayer(team_preys->player_names[i]);
       distance_to_preys.push_back(std::get<0>(t));
@@ -287,7 +290,7 @@ public:
     // for each hunter find the closest, and run away
     for (size_t i = 0; i < team_hunters->player_names.size(); i++)
     {
-      //ROS_WARN_STREAM("team_hunters =" << team_hunters->player_names[i] << endl);
+      // ROS_WARN_STREAM("team_hunters =" << team_hunters->player_names[i] << endl);
 
       std::tuple<float, float> t = getDistanceAndAngleToPlayer(team_hunters->player_names[i]);
       distance_to_hunters.push_back(std::get<0>(t));
@@ -410,7 +413,6 @@ public:
     // }
   }
 
-
   // void PCL_callback(const PointCloud::ConstPtr& msg)
   // {
   //   printf("Cloud: width = %d, height = %d\n", msg->width, msg->height);
@@ -418,13 +420,34 @@ public:
   //     printf("\t(%f, %f, %f)\n", pt.x, pt.y, pt.z);
   // }
 
+  bool DoOperation(rws2019_msgs::DoTheMath::Request &req, 
+                  rws2019_msgs::DoTheMath::Response &res)
+  {
+    if (req.op=="+")
+    res.result = req.a + req.b;
+    else if (req.op=="-")
+    res.result = req.a - req.b;
+    else if (req.op=="/")
+    res.result = req.a / req.b;
+    else if (req.op=="*")
+    res.result = req.a * req.b;
+    else
+    {
+      res.result = -1;
+      return true;
+    }
+    
+    // ROS_INFO("request: x=%ld, y=%ld", (long int)req.a, (long int)req.b);
+    // ROS_INFO("sending back response: [%ld]", (long int)res.result);
+    return true;
+  }
 
 private:
 };
 
 };  // namespace ttavares_ns
 
-main(int argc, char** argv)
+main(int argc, char **argv)
 {
   init(argc, argv, "PlayerTiago");
   NodeHandle n;
@@ -442,12 +465,17 @@ main(int argc, char** argv)
   // team_green.player_names.push_back("blourenco");
 
   //========================================== PCL ====================================
-  //ros::init(argc, argv, "sub_pcl");
-  //ros::NodeHandle nh;
-  //ros::Subscriber sub_pcl = n.subscribe<PointCloud>("/object_point_cloud", 1, &ttavares_ns::MyPlayer::PCL_callback, &player);
+  // ros::init(argc, argv, "sub_pcl");
+  // ros::NodeHandle nh;
+  // ros::Subscriber sub_pcl = n.subscribe<PointCloud>("/object_point_cloud", 1, &ttavares_ns::MyPlayer::PCL_callback,
+  // &player);
 
   //========================================================================================
+  //===============SERVIDOR=================
+  ros::ServiceServer service = n.advertiseService("do_the_math", &ttavares_ns::MyPlayer::DoOperation, &player);
+  // ROS_INFO("Ready to operate");
 
+  //=====================================================
   ros::Subscriber sub = n.subscribe("/make_a_play", 100, &ttavares_ns::MyPlayer::makeAPlayCallback, &player);
   // make_a_play is a topic
   player.printInfo();
