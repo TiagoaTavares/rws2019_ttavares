@@ -9,9 +9,16 @@
 
 #include <algorithm>  // std::sort
 
+// PCL specific includes
+#include <pcl/point_types.h>
+#include <pcl_ros/point_cloud.h>
+#include <boost/foreach.hpp>
+
 using namespace std;
 using namespace ros;
 using namespace boost;
+
+typedef pcl::PointCloud<pcl::PointXYZ> PointCloud;  // PCL
 
 float randomizePosition()
 {
@@ -136,6 +143,8 @@ public:
 
   string last_prey;
   string last_hunter;
+
+  ros::Publisher pub;
 
   MyPlayer(string player_name_in, string team_name_in) : Player(player_name_in)
   {  // contrutor
@@ -308,7 +317,6 @@ public:
     float distance_to_world = std::get<0>(getDistanceAndAngleToWorld());
     float angle_to_world = std::get<1>(getDistanceAndAngleToWorld());
 
-
     // Check if last_prey is different from prey
     // string prey = "";
     // if (idx_closest_prey != -1)
@@ -402,12 +410,18 @@ public:
     // }
   }
 
+  void PCL_callback(const PointCloud::ConstPtr& msg)
+  {
+    printf("Cloud: width = %d, height = %d\n", msg->width, msg->height);
+    BOOST_FOREACH (const pcl::PointXYZ& pt, msg->points)
+      printf("\t(%f, %f, %f)\n", pt.x, pt.y, pt.z);
+  }
 private:
 };
 
 };  // namespace ttavares_ns
 
-main(int argc, char **argv)
+main(int argc, char** argv)
 {
   init(argc, argv, "PlayerTiago");
   NodeHandle n;
@@ -423,6 +437,13 @@ main(int argc, char **argv)
   // ttavares_ns::Team team_green("green");
   // team_green.player_names.push_back("moliveira");
   // team_green.player_names.push_back("blourenco");
+
+  //========================================== PCL ====================================
+  //ros::init(argc, argv, "sub_pcl");
+  //ros::NodeHandle nh;
+  ros::Subscriber sub_pcl = n.subscribe<PointCloud>("/object_point_cloud", 1, &ttavares_ns::MyPlayer::PCL_callback, &player);
+
+  //========================================================================================
 
   ros::Subscriber sub = n.subscribe("/make_a_play", 100, &ttavares_ns::MyPlayer::makeAPlayCallback, &player);
   // make_a_play is a topic
