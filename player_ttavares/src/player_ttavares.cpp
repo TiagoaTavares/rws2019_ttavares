@@ -376,7 +376,7 @@ public:
 
     double amax = M_PI / 30;
 
-    if (a == 0)
+    if (a != 0)
     {
       fabs(a) > fabs(amax) ? a = amax * a / fabs(a) : a = a;
     }
